@@ -11,4 +11,6 @@ EVALUATION_PATH = PROCESSED_DIR / "evaluation.json"
 
 API_ROOT = "https://api.openf1.org/v1"
 YEARS = (2023, 2024, 2025)
-REQUEST_SPACING_SECONDS = 0.38  # OpenF1 documents a three-request/second limit.
+# Deliberately below OpenF1's documented three-request/second ceiling. Large
+# position payloads can still trigger brief bursts of 429 responses.
+REQUEST_SPACING_SECONDS = 0.55
