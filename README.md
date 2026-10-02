@@ -93,7 +93,7 @@ pip install -r requirements.txt
 pip install -e .
 python -m pitwall.data
 python -m pitwall.recommender
-streamlit run app.py
+python app.py
 ```
 
 The initial download will take a few minutes because it respects OpenF1's public
@@ -117,8 +117,11 @@ portfolio project.
    driver-race strategy table.
 3. **Model and evaluation** — weighted historical recommender, uncertainty and
    chronological holdout evaluation.
-4. **Streamlit interface** — three controls, recommendation cards,
+4. **FastAPI web interface** — three controls, recommendation cards,
    alternatives, evidence and limitations.
+
+The local interface exposes the actual comparable races behind the primary
+recommendation, including their grid, pit lap(s), result and similarity weight.
 
 The target is roughly 950–1,100 meaningful handwritten lines across the final
 pipeline, recommender, interface and focused tests.
@@ -130,7 +133,8 @@ PitWall/
 ├── data/                 # generated raw cache and processed tables (not source code)
 ├── src/pitwall/          # downloader, feature construction and recommender
 ├── tests/                # small checks for feature and model behaviour
-├── app.py                # local Streamlit interface
+├── app.py                # FastAPI routes for the local web interface
+├── pitwall_ui.html       # hand-written local HTML/CSS/JavaScript client
 ├── requirements.txt
 └── README.md
 ```

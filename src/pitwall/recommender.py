@@ -185,6 +185,16 @@ def recommend(
     return table.head(limit).copy()
 
 
+def comparable_rows(
+    history: pd.DataFrame, circuit: str, team: str, grid: int, strategy: str | None = None
+) -> pd.DataFrame:
+    """Return the dry historic rows behind a recommendation for inspection."""
+    pool = _context_pool(_dry_history(history), circuit, team, grid)
+    if strategy is not None:
+        pool = pool[pool["strategy"] == strategy]
+    return pool.sort_values("weight", ascending=False).copy()
+
+
 def evaluate_chronologically(rows: pd.DataFrame) -> dict[str, float | int | str]:
     """Evaluate strategy-conditioned outcome estimates without looking forward.
 

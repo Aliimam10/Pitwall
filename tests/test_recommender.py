@@ -1,7 +1,7 @@
 """Checks for the small, interpretable historical recommendation model."""
 import pandas as pd
 
-from pitwall.recommender import evaluate_chronologically, recommend, strategy_table
+from pitwall.recommender import comparable_rows, evaluate_chronologically, recommend, strategy_table
 
 
 def _history():
@@ -43,6 +43,14 @@ def test_strategy_table_excludes_weather_dependent_plans_without_weather_input()
     table = strategy_table(pd.concat([_history(), wet_row]), "Example", "Ferrari", 10)
 
     assert not table["strategy"].str.contains("INTERMEDIATE|WET").any()
+
+
+def test_comparable_rows_exposes_the_historic_examples_behind_a_plan():
+    rows = comparable_rows(_history(), "Example", "Ferrari", 10, "MEDIUM → HARD")
+
+    assert len(rows) == 3
+    assert set(rows["strategy"]) == {"MEDIUM → HARD"}
+    assert "weight" in rows
 
 
 def test_chronological_evaluation_only_scores_already_seen_strategies():

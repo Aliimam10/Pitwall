@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PitWall — F1 Strategy Engine</title>
+  <style>
+    :root { --red:#e8002d; --red-dark:#bd0024; --bg:#090909; --panel:#141414; --line:#2a2a2a; --muted:#8b8b8b; --text:#f5f5f5; }
+    * { box-sizing:border-box; } body { margin:0; color:var(--text); background:var(--bg); font:15px Inter,Arial,sans-serif; }
+    body::before { content:""; display:block; height:4px; background:var(--red); } main { max-width:1200px; margin:auto; padding:32px 20px 56px; }
+    .eyebrow, .label, th { color:var(--muted); font:700 11px "JetBrains Mono",monospace; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { margin:2px 0 0; font:700 clamp(34px,7vw,68px) "JetBrains Mono",monospace; letter-spacing:-.07em; } .eyebrow { color:var(--red); }
+    .subtitle { color:#aaa; max-width:650px; margin:10px 0 28px; line-height:1.55; } .rule { border:0; border-top:1px solid var(--line); margin:22px 0; }
+    .controls, .panel { background:var(--panel); border:1px solid var(--line); border-radius:4px; } .controls { display:grid; grid-template-columns:1.5fr 1.2fr .7fr auto; gap:14px; padding:18px; align-items:end; }
+    label { display:grid; gap:8px; } select, input { min-height:43px; width:100%; background:#0d0d0d; color:#fff; border:1px solid #353535; border-radius:2px; padding:0 11px; font:14px "JetBrains Mono",monospace; }
+    input[type=range] { padding:0; accent-color:var(--red); } .grid-number { color:var(--red); font:700 18px "JetBrains Mono",monospace; margin-top:3px; }
+    button { min-height:43px; border:0; border-radius:2px; background:var(--red); color:#fff; cursor:pointer; padding:0 20px; font:700 12px "JetBrains Mono",monospace; letter-spacing:.09em; text-transform:uppercase; } button:hover { background:var(--red-dark); } button:disabled { opacity:.55; cursor:wait; }
+    .note { color:#666; margin:10px 2px 0; font:11px "JetBrains Mono",monospace; letter-spacing:.04em; } .hidden { display:none!important; }
+    .scenario { color:#9c9c9c; font:12px "JetBrains Mono",monospace; margin:28px 0 10px; } h2 { margin:0; color:var(--red); font:700 14px "JetBrains Mono",monospace; letter-spacing:.08em; text-transform:uppercase; }
+    .primary { border-left:3px solid var(--red); padding-left:17px; margin:15px 0 22px; } #strategyName { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:14px 0 16px; }
+    .tyre { border-radius:2px; padding:6px 9px; font:800 13px "JetBrains Mono",monospace; letter-spacing:.04em; } .soft { background:#e8002d; } .medium { background:#ffc906; color:#111; } .hard { background:#fff; color:#111; } .inter { background:#39b54a; } .wet { background:#0067ff; } .arrow { color:#666; font:22px monospace; }
+    .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; } .metric { min-height:96px; background:var(--panel); border:1px solid var(--line); padding:14px; } .value { margin-top:9px; font:700 24px "JetBrains Mono",monospace; } .detail { color:#9a9a9a; margin-top:5px; font-size:12px; }
+    .timeline { margin:16px 0 25px; padding:16px; background:var(--panel); border:1px solid var(--line); } .track { position:relative; height:5px; margin:30px 8px 18px; background:#303030; } .marker { position:absolute; top:-10px; transform:translateX(-50%); text-align:center; white-space:nowrap; } .marker i { display:block; width:4px; height:25px; margin:auto; background:var(--red); } .marker span { display:block; color:#ddd; font:11px "JetBrains Mono",monospace; margin-top:5px; } .marker small { color:#777; font-size:10px; }
+    section { margin-top:26px; } .table-wrap { overflow-x:auto; background:var(--panel); border:1px solid var(--line); } table { width:100%; border-collapse:collapse; min-width:680px; font-family:"JetBrains Mono",monospace; font-size:12px; } th,td { padding:12px 13px; text-align:left; border-bottom:1px solid var(--line); } th { background:#1a1a1a; } td { color:#ddd; } tr:last-child td { border:0; }
+    details { margin-top:13px; background:#111; border:1px solid #222; border-radius:2px; } summary { padding:14px; cursor:pointer; font:700 12px "JetBrains Mono",monospace; letter-spacing:.06em; text-transform:uppercase; } .details-body { padding:0 14px 16px; color:#bbb; line-height:1.55; }
+    #error { margin-top:20px; color:#ff9baa; font:13px "JetBrains Mono",monospace; } footer { color:#555; font:11px "JetBrains Mono",monospace; margin-top:32px; }
+    @media (max-width:800px) { .controls,.metrics { grid-template-columns:1fr; } main { padding:24px 14px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">F1 Strategy Engine</div><h1>PITWALL</h1>
+    <p class="subtitle">Historical strategy evidence for a race-day starting situation. Estimates describe comparable observed races; they are not an optimal-strategy simulation.</p><hr class="rule">
+    <div class="controls">
+      <label><span class="label">Circuit</span><select id="circuitSel"></select></label>
+      <label><span class="label">Constructor / Team</span><select id="teamSel"></select></label>
+      <label><span class="label">Starting Grid</span><input id="gridSlider" type="range" min="1" max="20" value="10"><span id="gridValue" class="grid-number">P10</span></label>
+      <button id="analyseBtn" disabled>Analyse Strategy</button>
+    </div>
+    <p class="note">DRY-RACE PLANS ONLY · WEATHER IS NOT AN INPUT</p><p id="error" class="hidden"></p>
+    <div id="results" class="hidden">
+      <p id="scenario" class="scenario"></p><section class="primary"><h2>Historically Preferred Plan</h2><div id="strategyName"></div><div class="metrics">
+        <div class="metric"><div class="label">Estimated Finish</div><div id="finishValue" class="value"></div><div id="gainValue" class="detail"></div></div>
+        <div class="metric"><div class="label">Historic Points Chance</div><div id="pointsValue" class="value"></div><div class="detail">Observed comparable outcomes</div></div>
+        <div class="metric"><div class="label">Evidence</div><div id="examplesValue" class="value"></div><div id="qualityValue" class="detail"></div></div>
+        <div class="metric"><div class="label">Outcome Range</div><div id="rangeValue" class="value"></div><div class="detail">Historic uncertainty</div></div>
+      </div></section>
+      <section><h2>Pit Window Guide</h2><div class="timeline"><div id="pitText" class="detail"></div><div id="pitTimeline" class="track"></div></div></section>
+      <section><h2>Observed Alternatives</h2><div class="table-wrap"><table><thead><tr><th>Tyres</th><th>Stops</th><th>Historic Window</th><th>Finish</th><th>Points</th><th>Examples</th><th>Evidence</th></tr></thead><tbody id="alternativesBody"></tbody></table></div></section>
+      <details><summary>Why this recommendation? See the historic evidence</summary><div class="details-body"><p>These are the actual dry-race rows behind the primary plan. Higher weight means closer grid position, selected constructor-family match, or a more recent season.</p><div class="table-wrap"><table><thead><tr><th>Year</th><th>Driver</th><th>Team</th><th>Grid</th><th>Pit Lap(s)</th><th>Finish</th><th>Gain</th><th>Weight</th></tr></thead><tbody id="evidenceBody"></tbody></table></div></div></details>
+      <details><summary>Method and limits</summary><div class="details-body">PitWall weights same-circuit classified finishes by grid similarity, constructor match and recency. Car pace, drivers, incidents, Safety Cars and weather affect both choices and results, so these are historical associations—not causal or optimal-strategy claims.</div></details>
+    </div><footer>Source: OpenF1 completed 2023–2025 Grand Prix data · Local analysis only</footer>
+  </main>
+  <script>
+    const $ = id => document.getElementById(id); const escapeHtml = value => String(value ?? "—").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+    function tyreClass(compound) { const c = compound.toUpperCase(); return c.includes("SOFT") ? "soft" : c.includes("MEDIUM") ? "medium" : c.includes("HARD") ? "hard" : c.includes("INTER") ? "inter" : "wet"; }
+    function tyrePills(strategy) { return strategy.map(t => `<span class="tyre ${tyreClass(t)}">${escapeHtml(t)}</span>`).join('<span class="arrow">›</span>'); }
+    function parsePitText(txt) { return [...txt.matchAll(/Stop \d+: lap (\d+) \(historic IQR (\d+)[–-](\d+)\)/g)].map(m => ({lap:+m[1], iqrLo:+m[2], iqrHi:+m[3]})); }
+    function buildPitTimeline(stops) { const track = $("pitTimeline"); track.innerHTML = ""; if (!stops.length) { track.innerHTML = '<span class="detail">No planned tyre-change stop</span>'; return; } stops.forEach(stop => { const marker = document.createElement("div"); marker.className = "marker"; marker.style.left = `${Math.min(95, Math.max(5, stop.lap / 60 * 100))}%`; marker.innerHTML = `<i></i><span>LAP ${stop.lap}</span><small>IQR ${stop.iqrLo}–${stop.iqrHi}</small>`; track.appendChild(marker); }); }
+    function row(values) { return `<tr>${values.map(value => `<td>${value}</td>`).join("")}</tr>`; }
+    function renderResult(data) {
+      const primary = data.primary; $("results").classList.remove("hidden"); $("error").classList.add("hidden");
+      $("strategyName").innerHTML = tyrePills(primary.strategy); $("finishValue").textContent = `P${primary.finish}`; $("gainValue").textContent = `${primary.gain >= 0 ? "+" : ""}${primary.gain} places from grid`;
+      $("pointsValue").textContent = `${primary.points}%`; $("examplesValue").textContent = primary.examples; $("qualityValue").textContent = primary.quality; $("rangeValue").textContent = primary.range; $("pitText").textContent = primary.pit_text; buildPitTimeline(parsePitText(primary.pit_text));
+      $("alternativesBody").innerHTML = data.alternatives.length ? data.alternatives.map(alt => row([tyrePills(String(alt.tyres).split("→").map(x => x.trim())), escapeHtml(alt.stops), escapeHtml(alt.window), `P${Number(alt.finish).toFixed(1)}`, `${Math.round(alt.points * 100)}%`, escapeHtml(alt.examples), escapeHtml(alt.quality)])).join("") : row(["—", "—", "No second supported plan", "—", "—", "—", "—"]);
+      $("evidenceBody").innerHTML = data.evidence.map(item => row([escapeHtml(item.year), escapeHtml(item.driver), escapeHtml(item.team), `P${item.grid}`, escapeHtml(item.stop_laps || "—"), `P${item.finish_position}`, `${item.finish_gain >= 0 ? "+" : ""}${item.finish_gain}`, Number(item.weight).toFixed(2)])).join("");
+    }
+    async function loadDropdowns() { const [circuits, teams] = await Promise.all([fetch('/api/circuits').then(r => r.json()), fetch('/api/teams').then(r => r.json())]); circuits.forEach(c => $("circuitSel").appendChild(new Option(`${c.circuit} (${c.country})`, c.circuit))); teams.forEach(t => $("teamSel").appendChild(new Option(t, t))); }
+    async function runAnalysis() { const button = $("analyseBtn"); button.disabled = true; button.textContent = "Analysing…"; try { const circuit = $("circuitSel").value, team = $("teamSel").value, grid = $("gridSlider").value; const data = await fetch(`/api/analyse?circuit=${encodeURIComponent(circuit)}&team=${encodeURIComponent(team)}&grid=${grid}`).then(r => r.json()); if (data.error) { $("strategyName").textContent = "No comparable data for this circuit"; return; } $("scenario").textContent = `SCENARIO · ${circuit.toUpperCase()} · P${grid} · ${team.toUpperCase()}`; renderResult(data); } catch (error) { $("error").textContent = "Could not load strategy analysis. Check that the local server is running."; $("error").classList.remove("hidden"); } finally { button.disabled = false; button.textContent = "Analyse Strategy"; } }
+    $("gridSlider").addEventListener("input", event => $("gridValue").textContent = `P${event.target.value}`); $("analyseBtn").addEventListener("click", runAnalysis);
+    loadDropdowns().then(() => { $("analyseBtn").disabled = false; return runAnalysis(); }).catch(() => { $("error").textContent = "Could not load PitWall's local data."; $("error").classList.remove("hidden"); });
+  </script>
+</body>
+</html>
