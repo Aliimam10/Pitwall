@@ -41,6 +41,11 @@ OpenF1 starting-grid endpoint was not populated in an initial availability
 check. The downloader will cache the raw responses so this choice is auditable
 and easy to replace if a better grid source is later added.
 
+Because weather is not one of the three user inputs, the default recommender
+uses dry tyre sequences only. Intermediate and wet-tyre races remain in the
+raw/processed dataset, but are not treated as a sensible pre-race recommendation
+without a weather forecast.
+
 DNS, DNF, and DSQ rows remain available in the processed data but will not train
 the finishing-outcome estimates. That prevents a reliability failure from being
 presented as evidence for or against a tyre sequence.
@@ -87,12 +92,14 @@ source .venv/bin/activate
 pip install -r requirements.txt
 pip install -e .
 python -m pitwall.data
+python -m pitwall.recommender
 streamlit run app.py
 ```
 
 The initial download will take a few minutes because it respects OpenF1's public
 rate limit and caches every response under `data/raw/`. The compact processed
-table is written under `data/processed/`.
+table is written under `data/processed/`. `python -m pitwall.recommender`
+also writes the chronological evaluation report consumed by the interface.
 
 ## Scope deliberately left out
 
